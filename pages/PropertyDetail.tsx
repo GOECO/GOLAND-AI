@@ -1,28 +1,67 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PROPERTIES } from '../constants';
+import { getAIResponse } from '../services/geminiService';
 
 const PropertyDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const property = PROPERTIES.find(p => p.id === id) || PROPERTIES[0];
+  
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [priceAlert, setPriceAlert] = useState(false);
-  const [threshold, setThreshold] = useState(3);
+  const [threshold, setThreshold] = useState(5);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  
+  // AI Insight State
+  const [aiInsight, setAiInsight] = useState<string>('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchMarketAnalysis = async () => {
+      setIsAiLoading(true);
+      const prompt = `Analyze the current property market trends in Ho Chi Minh City for the project '${property.name}'. 
+      Provide professional insights on:
+      1. Recent price appreciation trends (last 1-2 years).
+      2. Typical rental yields for this specific project.
+      3. Upcoming neighborhood/infrastructure developments nearby.
+      Keep the response concise, data-driven, and in Vietnamese. Use bullet points for clarity.`;
+      
+      try {
+        const result = await getAIResponse(prompt);
+        setAiInsight(result.text);
+      } catch (error) {
+        console.error("Failed to fetch AI insights:", error);
+        setAiInsight("Không thể tải thông tin phân tích thị trường lúc này. Vui lòng thử lại sau.");
+      } finally {
+        setIsAiLoading(false);
+      }
+    };
+
+    fetchMarketAnalysis();
+  }, [property.name]);
 
   const handleToggleAlert = () => {
     if (!priceAlert) {
-      setPriceAlert(true);
+      setIsAlertModalOpen(true);
     } else {
       setPriceAlert(false);
     }
   };
 
   const saveAlert = () => {
+    setPriceAlert(true);
+    setIsAlertModalOpen(false);
     setShowSuccessToast(true);
     setTimeout(() => setShowSuccessToast(false), 3000);
+  };
+
+  const calculateSavings = (percent: number) => {
+    const priceVal = parseFloat(property.price.replace(' Tỷ', ''));
+    const savings = (priceVal * percent) / 100;
+    return savings.toFixed(2) + ' Tỷ';
   };
 
   return (
@@ -45,14 +84,16 @@ const PropertyDetail: React.FC = () => {
         >
           <span className="material-symbols-outlined">arrow_back</span>
         </button>
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-1">
+          {/* Requested Share Button next to More Options */}
           <button 
             onClick={() => navigate('/share-preview')}
             className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-slate-900 dark:text-white active:scale-90"
+            title="Share"
           >
-            <span className="material-symbols-outlined">ios_share</span>
+            <span className="material-symbols-outlined">share</span>
           </button>
-          <button className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-slate-900 dark:text-white active:scale-90">
+          <button className="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-slate-900 dark:text-white active:scale-90" title="More options">
             <span className="material-symbols-outlined">more_horiz</span>
           </button>
         </div>
@@ -125,7 +166,15 @@ const PropertyDetail: React.FC = () => {
 
         <div className="flex items-end justify-between border-b border-gray-100 dark:border-gray-800 pb-5 mb-5">
           <div>
-            <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Total Price</p>
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider">Total Price</p>
+              <button 
+                onClick={() => setIsAlertModalOpen(true)}
+                className={`flex items-center justify-center size-6 rounded-full transition-all ${priceAlert ? 'bg-primary text-white animate-pulse shadow-glow' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'}`}
+              >
+                <span className={`material-symbols-outlined text-[16px] ${priceAlert ? 'filled' : ''}`}>notifications_active</span>
+              </button>
+            </div>
             <h2 className="font-display text-primary tracking-tight text-3xl font-bold leading-none">
               {property.price.split(' ')[0]} <span className="text-lg text-slate-700 dark:text-gray-300 font-bold">{property.price.split(' ')[1]}</span>
             </h2>
@@ -159,7 +208,7 @@ const PropertyDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Goland AI Insight Card */}
+      {/* Dynamic Goland AI Insight Card */}
       <div className="mt-8 mx-4 p-5 rounded-2xl bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-slate-800 dark:to-slate-900 border border-blue-100 dark:border-slate-700 relative overflow-hidden shadow-soft transition-all duration-500">
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
@@ -170,9 +219,9 @@ const PropertyDetail: React.FC = () => {
               <div className="bg-white dark:bg-slate-700 p-1 rounded-md shadow-sm">
                 <span className="material-symbols-outlined text-primary text-xl filled">auto_awesome</span>
               </div>
-              <h3 className="font-display text-lg font-bold text-slate-900 dark:text-white">Goland AI Insight</h3>
+              <h3 className="font-display text-lg font-bold text-slate-900 dark:text-white">Goland AI Market Analysis</h3>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium ml-1">Powered by market data & trends</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium ml-1">Live market data & trends</p>
           </div>
           <div className="flex flex-col items-center">
             <div className="relative flex items-center justify-center size-14">
@@ -184,76 +233,53 @@ const PropertyDetail: React.FC = () => {
                 <span className="text-sm font-bold text-primary">{property.potential || 8.5}</span>
               </div>
             </div>
-            <span className="text-[10px] font-bold text-primary uppercase tracking-wider mt-1">Potential</span>
+            <span className="text-[10px] font-bold text-primary uppercase tracking-wider mt-1">Growth Index</span>
           </div>
         </div>
 
         <div className="space-y-3 relative z-10">
-          <div className="flex gap-3 items-start bg-white/70 dark:bg-white/5 p-3.5 rounded-xl backdrop-blur-sm border border-white/50 dark:border-white/10 shadow-sm">
-            <span className="material-symbols-outlined text-green-600 dark:text-green-400 mt-0.5 text-lg">trending_up</span>
-            <div>
-              <p className="text-sm font-bold text-slate-900 dark:text-white">High Growth Potential</p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 leading-relaxed">
-                Predicted <span className="font-bold text-green-600">+12% value</span> in 2 years due to new Metro line nearby.
-              </p>
+          {isAiLoading ? (
+            <div className="flex flex-col gap-4 animate-pulse p-4 bg-white/40 dark:bg-white/5 rounded-xl">
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-4/6"></div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-white/70 dark:bg-white/5 p-4 rounded-xl backdrop-blur-sm border border-white/50 dark:border-white/10 shadow-sm text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line font-medium">
+              {aiInsight || "Đang phân tích dữ liệu thị trường..."}
+            </div>
+          )}
           
-          {/* Enhanced Price Drop Alert Feature */}
-          <div className={`flex flex-col p-3.5 rounded-xl border transition-all duration-500 overflow-hidden ${priceAlert ? 'bg-primary/10 border-primary/30 shadow-md scale-[1.02]' : 'bg-white/70 dark:bg-white/5 border-white/50 dark:border-white/10 shadow-sm'}`}>
+          <div 
+            onClick={handleToggleAlert}
+            className={`flex flex-col p-3.5 rounded-xl border transition-all duration-500 overflow-hidden cursor-pointer ${priceAlert ? 'bg-primary/10 border-primary/30 shadow-md scale-[1.02]' : 'bg-white/70 dark:bg-white/5 border-white/50 dark:border-white/10 shadow-sm hover:border-primary/20'}`}
+          >
             <div className="flex items-center justify-between">
               <div className="flex gap-3 items-start">
                 <span className={`material-symbols-outlined text-lg mt-0.5 transition-colors ${priceAlert ? 'text-primary filled animate-pulse' : 'text-gray-400'}`}>notifications_active</span>
                 <div className="pr-4">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">Price Drop Alert</p>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">Notify me if the price drops by your set threshold.</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">Cảnh báo giảm giá</p>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                    {priceAlert ? `Đang theo dõi mức giảm ${threshold}% (~${calculateSavings(threshold)})` : 'Nhận thông báo khi giá giảm đến mức mong muốn.'}
+                  </p>
                 </div>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={priceAlert}
-                  onChange={handleToggleAlert}
-                  className="sr-only peer" 
-                />
-                <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all dark:border-gray-600 peer-checked:bg-primary shadow-inner"></div>
-              </label>
+              <div className="relative inline-flex items-center cursor-pointer">
+                <div className={`w-10 h-5.5 rounded-full transition-colors ${priceAlert ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700'} p-0.5 flex items-center ${priceAlert ? 'justify-end' : 'justify-start'}`}>
+                  <div className="h-4.5 w-4.5 rounded-full bg-white shadow-sm"></div>
+                </div>
+              </div>
             </div>
-
-            {/* Expands when toggled */}
-            {priceAlert && (
-              <div className="mt-4 pt-4 border-t border-primary/10 animate-in fade-in slide-in-from-top-2 duration-500">
-                <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-3">Set Alert Threshold</p>
-                <div className="flex gap-2">
-                  {[1, 3, 5, 10].map((p) => (
-                    <button 
-                      key={p}
-                      onClick={() => setThreshold(p)}
-                      className={`flex-1 py-2 px-1 rounded-lg text-xs font-black transition-all border ${threshold === p ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white/50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-gray-100 dark:border-gray-700 hover:bg-white'}`}
-                    >
-                      {p}%
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-4 flex gap-2">
-                   <button 
-                    onClick={saveAlert}
-                    className="flex-1 bg-primary text-white py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
-                   >
-                     Update Alert
-                   </button>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
         <button 
           onClick={() => navigate('/chat')}
-          className="w-full mt-5 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-sm font-bold transition-all active:scale-95"
+          className="w-full mt-5 flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 transition-all hover:bg-primary-dark active:scale-95"
         >
           <span className="material-symbols-outlined text-lg">chat_spark</span>
-          Ask AI about this property
+          Chat with AI for deeper analysis
         </button>
       </div>
 
@@ -308,6 +334,72 @@ const PropertyDetail: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Price Alert Modal */}
+      {isAlertModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsAlertModalOpen(false)}></div>
+          <div className="relative w-full max-w-md bg-white dark:bg-[#1a2632] rounded-t-[32px] shadow-2xl flex flex-col p-6 pb-12 animate-in slide-in-from-bottom duration-500 ease-out">
+            <div className="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-6 opacity-50"></div>
+            
+            <div className="flex items-center gap-4 mb-6">
+              <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-sm border border-primary/20">
+                <span className="material-symbols-outlined text-3xl filled">notifications_active</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Cài đặt cảnh báo</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">Chọn mức giảm giá để nhận thông báo</p>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-4 px-1">Mức giảm mong muốn</p>
+                <div className="grid grid-cols-5 gap-2">
+                  {[1, 3, 5, 10, 15].map((p) => (
+                    <button 
+                      key={p}
+                      onClick={() => setThreshold(p)}
+                      className={`h-12 rounded-xl text-sm font-black transition-all border ${threshold === p ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-105' : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-gray-100 dark:border-gray-700 hover:bg-white'}`}
+                    >
+                      {p}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tiết kiệm dự kiến</span>
+                  <span className="text-primary font-black text-lg">~ {calculateSavings(threshold)}</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 h-1 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary transition-all duration-500" style={{ width: `${(threshold / 15) * 100}%` }}></div>
+                </div>
+                <p className="text-[11px] text-gray-400 mt-3 italic font-medium leading-relaxed">
+                  "Hệ thống sẽ tự động quét biến động giá từ chủ nhà và sàn giao dịch 24/7 để báo cho bạn."
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button 
+                  onClick={() => setIsAlertModalOpen(false)}
+                  className="flex-1 h-14 rounded-2xl bg-gray-100 dark:bg-gray-800 text-slate-700 dark:text-white font-bold text-base hover:bg-gray-200 transition-all active:scale-95"
+                >
+                  Hủy
+                </button>
+                <button 
+                  onClick={saveAlert}
+                  className="flex-[1.5] h-14 rounded-2xl bg-primary text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/30 hover:bg-blue-600 transition-all active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <span>Lưu cảnh báo</span>
+                  <span className="material-symbols-outlined">done</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sticky Bottom Actions */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 p-4 pb-8 flex gap-3 items-center z-[60] shadow-[0_-8px_30px_-5px_rgba(0,0,0,0.1)] max-w-[480px] mx-auto">

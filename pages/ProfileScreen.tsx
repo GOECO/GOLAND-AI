@@ -35,7 +35,7 @@ const ProfileScreen: React.FC = () => {
           </div>
         </div>
         <div className="flex flex-col items-center justify-center gap-1">
-          <h1 className="text-2xl font-bold leading-tight text-slate-900 dark:text-white">Nguyen Van A</h1>
+          <h1 className="text-2xl font-bold leading-tight text-slate-900 dark:text-white">Alex Nguyen</h1>
           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-50 to-yellow-100 text-amber-700 dark:from-amber-900/30 dark:to-yellow-900/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
             <span className="material-symbols-outlined filled" style={{ fontSize: '14px' }}>diamond</span>
             Thành viên Premium
@@ -125,8 +125,16 @@ const ProfileScreen: React.FC = () => {
                 className="bg-center bg-no-repeat bg-cover w-full h-full transform group-hover:scale-105 transition-transform duration-700" 
                 style={{ backgroundImage: `url(${property.image})` }}
               ></div>
-              <div className="absolute top-2 right-2 bg-white/90 dark:bg-background-dark/90 backdrop-blur rounded-lg px-2 py-1.5 flex items-center gap-1 shadow-sm">
-                <span className="material-symbols-outlined text-red-500 text-[18px] fill-current">favorite</span>
+              <div className="absolute top-2 right-2 flex flex-col gap-2">
+                <div className="bg-white/90 dark:bg-background-dark/90 backdrop-blur rounded-lg px-2 py-1.5 flex items-center justify-center shadow-sm">
+                  <span className="material-symbols-outlined text-red-500 text-[18px] fill-current">favorite</span>
+                </div>
+                <div 
+                  onClick={(e) => { e.stopPropagation(); navigate('/share-preview'); }}
+                  className="bg-white/90 dark:bg-background-dark/90 backdrop-blur rounded-lg px-2 py-1.5 flex items-center justify-center shadow-sm hover:text-primary transition-colors active:scale-90"
+                >
+                  <span className="material-symbols-outlined text-[18px]">ios_share</span>
+                </div>
               </div>
               <div className="absolute bottom-2 left-2 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg shadow-md flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[14px] filled">auto_awesome</span>

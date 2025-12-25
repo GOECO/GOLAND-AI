@@ -188,9 +188,9 @@ const HomeScreen: React.FC = () => {
           <div className="grid grid-cols-2 gap-4">
             {[
               { title: 'Bản đồ số', desc: 'Quy hoạch & Giá', icon: 'map', color: 'text-primary', bg: 'bg-blue-50 dark:bg-blue-900/20', path: '/map' },
-              { title: 'Trợ lý 24/7', desc: 'Tư vấn chuyên sâu', icon: 'chat_spark', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20', path: '/chat', isSpecial: true },
+              { title: 'Lịch hẹn', desc: 'Quản lý lịch', icon: 'calendar_month', color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20', path: '/calendar' },
               { title: 'Định giá AI', desc: 'Thị trường thực tế', icon: 'analytics', color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20', path: '/market-report' },
-              { title: 'Pháp lý', desc: 'Check sổ & Thuế', icon: 'gavel', color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20', path: '#' }
+              { title: 'Trợ lý 24/7', desc: 'Tư vấn chuyên sâu', icon: 'chat_spark', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20', path: '/chat', isSpecial: true },
             ].map((item, idx) => (
               <div 
                 key={idx} 

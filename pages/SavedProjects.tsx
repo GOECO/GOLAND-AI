@@ -230,17 +230,30 @@ const SavedProjects: React.FC = () => {
                         </div>
                       )}
                       
-                      {/* Interactive Price Alert Toggle */}
-                      <button 
-                        onClick={(e) => togglePriceAlert(e, project.id)}
-                        className={`absolute top-4 left-4 backdrop-blur-md size-9 rounded-full flex items-center justify-center shadow-lg border transition-all active:scale-90 ${
-                          project.hasPriceAlert 
-                          ? 'bg-primary/90 text-white border-primary/20 scale-110' 
-                          : 'bg-white/70 dark:bg-black/60 text-gray-400 border-white/20'
-                        }`}
-                      >
-                        <span className={`material-symbols-outlined text-[20px] ${project.hasPriceAlert ? 'filled animate-pulse' : ''}`}>notifications_active</span>
-                      </button>
+                      {/* Floating Actions on Image */}
+                      <div className="absolute top-4 left-4 flex gap-2">
+                        {/* Interactive Price Alert Toggle */}
+                        <button 
+                          onClick={(e) => togglePriceAlert(e, project.id)}
+                          className={`backdrop-blur-md size-9 rounded-full flex items-center justify-center shadow-lg border transition-all active:scale-90 ${
+                            project.hasPriceAlert 
+                            ? 'bg-primary/90 text-white border-primary/20' 
+                            : 'bg-white/70 dark:bg-black/60 text-gray-400 border-white/20'
+                          }`}
+                        >
+                          <span className={`material-symbols-outlined text-[20px] ${project.hasPriceAlert ? 'filled animate-pulse' : ''}`}>notifications_active</span>
+                        </button>
+                        
+                        {/* Share Button (Large Card) */}
+                        {!isEditMode && (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); navigate('/share-preview'); }}
+                            className="backdrop-blur-md size-9 rounded-full bg-white/70 dark:bg-black/60 text-gray-400 border border-white/20 flex items-center justify-center shadow-lg transition-all active:scale-90 hover:text-primary"
+                          >
+                            <span className="material-symbols-outlined text-[20px]">ios_share</span>
+                          </button>
+                        )}
+                      </div>
 
                       {project.insight && (
                         <div className="absolute bottom-4 left-4 bg-primary/95 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-1.5 border border-white/20">
@@ -311,17 +324,30 @@ const SavedProjects: React.FC = () => {
                         <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest text-white border border-white/20">{project.status}</div>
                       )}
                       
-                      {/* Interactive Price Alert Toggle (Compact) */}
-                      <button 
-                        onClick={(e) => togglePriceAlert(e, project.id)}
-                        className={`absolute bottom-2 right-2 backdrop-blur-md size-7 rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 ${
-                          project.hasPriceAlert 
-                          ? 'bg-primary text-white' 
-                          : 'bg-white/90 dark:bg-black/80 text-gray-400'
-                        }`}
-                      >
-                        <span className={`material-symbols-outlined text-[16px] ${project.hasPriceAlert ? 'filled' : ''}`}>notifications_active</span>
-                      </button>
+                      {/* Floating Actions on Image (Compact) */}
+                      <div className="absolute bottom-2 right-2 flex flex-col gap-1.5">
+                        {/* Interactive Price Alert Toggle */}
+                        <button 
+                          onClick={(e) => togglePriceAlert(e, project.id)}
+                          className={`backdrop-blur-md size-7 rounded-full flex items-center justify-center shadow-md transition-all active:scale-90 ${
+                            project.hasPriceAlert 
+                            ? 'bg-primary text-white' 
+                            : 'bg-white/90 dark:bg-black/80 text-gray-400'
+                          }`}
+                        >
+                          <span className={`material-symbols-outlined text-[16px] ${project.hasPriceAlert ? 'filled' : ''}`}>notifications_active</span>
+                        </button>
+                        
+                        {/* Share Button (Compact Card) */}
+                        {!isEditMode && (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); navigate('/share-preview'); }}
+                            className="backdrop-blur-md size-7 rounded-full bg-white/90 dark:bg-black/80 text-gray-400 flex items-center justify-center shadow-md transition-all active:scale-90 hover:text-primary"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">ios_share</span>
+                          </button>
+                        )}
+                      </div>
 
                       {project.isSoldOut && (
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">

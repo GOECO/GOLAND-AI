@@ -20,6 +20,7 @@ const UserManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeRoleFilter, setActiveRoleFilter] = useState('Tất cả');
   const [activeStatusFilter, setActiveStatusFilter] = useState('Tất cả');
+  const [sortByStatus, setSortByStatus] = useState(false);
 
   const users: User[] = [
     {
@@ -30,8 +31,8 @@ const UserManagement: React.FC = () => {
       img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDFmfE7hKGEPmi9h5RLxMy04lNkZbpU3R6X0NwkFUFnLID4dk4IOpULIzbkEHHq_pBN10psWKS9GngOXmtssey2akqrl1q0ZeP4x-RvQqhpT_TuwBSRiq68J0Kq66fcsi9ad0vEqVO6pWRIzB2AJIM3uY_n5DCPcHd3IfNIoE9Mm8pUTixKsujJ6jWKr388TS8GR9-fLb7HOCEqA4jcpYUBnkeepCjW38e1XWYIhS2gDX8H9H27MwChOZWvSl6qsI1qCYGCUSIkYO5d',
       isOnline: true,
       status: 'active',
-      roleColor: 'text-primary dark:text-blue-300',
-      roleBg: 'bg-blue-50 dark:bg-blue-900/30'
+      roleColor: 'text-blue-400',
+      roleBg: 'bg-blue-500/10'
     },
     {
       id: '2',
@@ -41,8 +42,8 @@ const UserManagement: React.FC = () => {
       img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuABkvEeUoKuPskK4snVhNHV7qsXeGMUu9DYjJDa1PoYXPyStAtTi_E9sbh7w_pqVtlG--FasrGYvSWewhg_kvsRnjZCVUlKZJi0uYwW0lDQW4Otvh6yD0sIFY-lyTB07J3-qLr529MbBYVCOhHzg0ovhIGl_ELIM3W44-2FXMdkqqwQRIFR-ewy2Ry5qWXS3qNimp7tbTZAIKRYWna5ibbw6gRixBlSnks3gxwbpbViECelIM0a2tzRe0EDN5m9OxW8jyDOW9CjUpog',
       isOnline: true,
       status: 'active',
-      roleColor: 'text-purple-700 dark:text-purple-300',
-      roleBg: 'bg-purple-50 dark:bg-purple-900/30'
+      roleColor: 'text-purple-400',
+      roleBg: 'bg-purple-500/10'
     },
     {
       id: '3',
@@ -53,8 +54,8 @@ const UserManagement: React.FC = () => {
       isOnline: true,
       isVerified: true,
       status: 'active',
-      roleColor: 'text-amber-700 dark:text-amber-400',
-      roleBg: 'bg-amber-50 dark:bg-amber-900/30'
+      roleColor: 'text-amber-400',
+      roleBg: 'bg-amber-500/10'
     },
     {
       id: '4',
@@ -64,8 +65,8 @@ const UserManagement: React.FC = () => {
       img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDfyxnnEVr0Pqx_baEsUyCjTohg-xA6R9pmmapMRV0JaecVERGtu5c5FWua-7BUsP4kjdAlKahwuHuv6xUeB-4zC06_6XwZQi_xOQyHKs2aqmpx8zqj7aSoI0568LxH8S-FgCdwpZaBWKn7yWY0WFu6upZHUTGJ0sSzJB4V_8AQgDUx7XTUNp76GkYvCMCPCf0vG362wK220uq8Ke--L6gkyG7xJavpw1928DONW_BXT-rNLTqZSx2jazD6K3gIxu7Fq1jAAYynvTsL',
       isOnline: false,
       status: 'inactive',
-      roleColor: 'text-emerald-700 dark:text-emerald-300',
-      roleBg: 'bg-emerald-50 dark:bg-emerald-900/30'
+      roleColor: 'text-emerald-400',
+      roleBg: 'bg-emerald-500/10'
     },
     {
       id: '5',
@@ -75,184 +76,252 @@ const UserManagement: React.FC = () => {
       img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD8_rEluIpZ_Q_9Dtx4Hu2vFYEk2R4pVyBgkU-bcD1vcIBwFQ8R2uXQ7W9i4aevXrGJ3Ie_7Eg3cnBPDbTKIcIsEAfz_iLgo6_YOUk0rXvvKFr7gapy_Pz7DUPYgWLjcWWd7U9UlH51r7l_vM00h6WtlVncz2Fpe0lQ9qTeLIdYdBMOmdY50l2j1jZV1JzcaaceoFJthyp_wsJndyunXBWzDD4JmCelSO4bEBYVbdMUTjsAhzKB2FTSwU-7uJS4iOJgAulSwwaTOL86',
       isOnline: true,
       status: 'active',
-      roleColor: 'text-gray-600 dark:text-gray-300',
-      roleBg: 'bg-gray-100 dark:bg-gray-700'
+      roleColor: 'text-slate-400',
+      roleBg: 'bg-slate-800'
     }
   ];
 
   const roleChips = ['Tất cả', 'Admin hệ thống', 'Trưởng nhóm Sale', 'Sale cá nhân', 'Nhà đầu tư', 'Người mua/thuê'];
-  const statusChips = ['Tất cả', 'Hoạt động', 'Tạm dừng'];
+  
+  const counts = {
+    all: users.length,
+    active: users.filter(u => u.status === 'active').length,
+    inactive: users.filter(u => u.status === 'inactive').length
+  };
 
-  const filteredUsers = users
+  const statusOptions = [
+    { label: 'Tất cả', value: 'Tất cả', count: counts.all, icon: 'group' },
+    { label: 'Hoạt động', value: 'active', count: counts.active, icon: 'check_circle' },
+    { label: 'Tạm dừng', value: 'inactive', count: counts.inactive, icon: 'cancel' }
+  ];
+
+  let filteredUsers = users
     .filter(u => activeRoleFilter === 'Tất cả' || u.role === activeRoleFilter)
     .filter(u => {
       if (activeStatusFilter === 'Tất cả') return true;
-      if (activeStatusFilter === 'Hoạt động') return u.status === 'active';
-      if (activeStatusFilter === 'Tạm dừng') return u.status === 'inactive';
-      return true;
+      return u.status === activeStatusFilter;
     })
     .filter(u => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.email.toLowerCase().includes(searchQuery.toLowerCase()));
 
+  if (sortByStatus) {
+    filteredUsers = [...filteredUsers].sort((a, b) => {
+      if (a.status === 'active' && b.status === 'inactive') return -1;
+      if (a.status === 'inactive' && b.status === 'active') return 1;
+      return 0;
+    });
+  }
+
   return (
-    <div className="relative flex h-full min-h-screen w-full flex-col bg-background-light dark:bg-background-dark font-display antialiased transition-colors duration-200">
-      {/* Top App Bar */}
-      <header className="sticky top-0 z-20 flex items-center justify-between bg-white dark:bg-surface-dark backdrop-blur-sm p-4 pb-3 border-b border-gray-100 dark:border-gray-800 transition-colors">
-        <h2 className="text-text-main dark:text-white text-xl font-bold leading-tight tracking-tight flex-1">Quản lý Người dùng</h2>
-        <div className="flex w-12 items-center justify-end">
-          <button className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-            <span className="material-symbols-outlined text-text-main dark:text-white">notifications</span>
+    <div className="relative flex h-full min-h-screen w-full flex-col bg-background-dark font-sans antialiased selection:bg-primary/30 transition-colors duration-500 overflow-x-hidden">
+      {/* Background Decorative Elements */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[20%] left-[-10%] w-[300px] h-[300px] bg-purple-600/5 rounded-full blur-[100px]"></div>
+      </div>
+
+      {/* Premium Header */}
+      <header className="sticky top-0 z-50 flex items-center justify-between bg-background-dark/80 backdrop-blur-2xl p-5 pb-4 border-b border-white/5 shadow-2xl">
+        <div className="flex flex-col">
+          <h2 className="text-white text-2xl font-black leading-none tracking-tighter uppercase font-display italic group cursor-default">
+            Nhân <span className="text-primary group-hover:animate-pulse">Sự</span>
+          </h2>
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.25em]">{filteredUsers.length} người dùng trực tuyến</p>
+          </div>
+        </div>
+        <div className="flex gap-2.5">
+          <button 
+            onClick={() => setSortByStatus(!sortByStatus)}
+            className={`flex h-11 w-11 items-center justify-center rounded-2xl transition-all shadow-xl border active:scale-90 ${
+              sortByStatus 
+              ? 'bg-primary/20 text-primary border-primary/30 shadow-primary/10' 
+              : 'bg-surface-dark text-slate-400 border-white/5'
+            }`}
+            title="Sắp xếp"
+          >
+            <span className={`material-symbols-outlined text-[22px] ${sortByStatus ? 'filled' : ''}`}>swap_vert</span>
+          </button>
+          <button 
+            onClick={() => navigate('/add-user')}
+            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white shadow-glow hover:bg-primary-dark active:scale-95 transition-all border border-white/10"
+          >
+            <span className="material-symbols-outlined text-[24px]">person_add</span>
           </button>
         </div>
       </header>
 
-      {/* Search & Filters */}
-      <div className="sticky top-[60px] z-10 bg-background-light dark:bg-background-dark px-4 py-3 pb-2 transition-colors">
-        <div className="flex gap-3 mb-4">
-          <div className="flex flex-1 items-center rounded-2xl bg-white dark:bg-surface-dark shadow-soft border border-gray-100 dark:border-gray-800 h-12 overflow-hidden transition-all focus-within:ring-2 focus-within:ring-primary/20">
-            <div className="flex items-center justify-center pl-4 pr-2 text-text-sub dark:text-gray-400">
-              <span className="material-symbols-outlined">search</span>
-            </div>
-            <input 
-              className="flex w-full flex-1 border-none bg-transparent py-2 px-0 text-base font-medium text-text-main dark:text-white placeholder:text-text-sub/60 focus:ring-0" 
-              placeholder="Tìm kiếm tên, email, sđt..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+      {/* Persistent Filters & Search */}
+      <div className="sticky top-[73px] z-40 bg-background-dark/95 backdrop-blur-xl px-5 py-6 pb-4 border-b border-white/5">
+        {/* Modern Search */}
+        <div className="relative mb-6 group">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <span className="material-symbols-outlined text-slate-500 group-focus-within:text-primary transition-colors text-[22px]">search</span>
           </div>
-          <button className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white dark:bg-surface-dark shadow-soft border border-gray-100 dark:border-gray-800 text-text-main dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-            <span className="material-symbols-outlined">filter_list</span>
-          </button>
+          <input 
+            className="w-full pl-12 pr-4 py-4 rounded-[20px] bg-slate-900/40 border border-white/10 text-white placeholder:text-slate-600 font-bold focus:ring-2 focus:ring-primary/20 focus:bg-slate-900/60 outline-none transition-all shadow-inner" 
+            placeholder="Tìm kiếm theo tên, email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
 
-        {/* Role Filters */}
-        <div className="flex flex-col gap-3">
-          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-            <div className="flex items-center shrink-0 pr-2 border-r border-gray-200 dark:border-gray-700">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Vai trò</span>
-            </div>
-            {roleChips.map(chip => (
-              <button 
-                key={chip}
-                onClick={() => setActiveRoleFilter(chip)}
-                className={`flex h-8 shrink-0 items-center justify-center rounded-full px-4 shadow-sm transition-all active:scale-95 ${
-                  activeRoleFilter === chip 
-                  ? 'bg-text-main dark:bg-white text-white dark:text-text-main font-bold' 
-                  : 'bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-text-main dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800'
-                }`}
-              >
-                <p className="text-xs">{chip}</p>
-              </button>
-            ))}
-          </div>
+        {/* Status Tabs */}
+        <div className="flex gap-3 p-1.5 bg-slate-950/40 rounded-[22px] border border-white/5 mb-5">
+          {statusOptions.map((opt) => (
+            <button 
+              key={opt.value}
+              onClick={() => setActiveStatusFilter(opt.value)}
+              className={`flex-1 flex flex-col items-center justify-center py-3 rounded-[18px] transition-all relative overflow-hidden ${
+                activeStatusFilter === opt.value 
+                ? 'bg-surface-dark shadow-2xl border border-white/10' 
+                : 'text-slate-500 hover:bg-white/5'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                 <span className={`material-symbols-outlined text-[14px] ${
+                   activeStatusFilter === opt.value ? 'text-primary' : 'text-slate-700'
+                 }`}>
+                   {opt.icon}
+                 </span>
+                 <span className={`text-[10px] font-black uppercase tracking-widest ${
+                   activeStatusFilter === opt.value ? 'text-white' : 'text-slate-500'
+                 }`}>
+                   {opt.label}
+                 </span>
+              </div>
+              <span className={`text-lg font-black tracking-tighter ${
+                activeStatusFilter === opt.value ? 'text-primary' : 'opacity-40'
+              }`}>
+                {opt.count}
+              </span>
+              {activeStatusFilter === opt.value && (
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-full shadow-glow"></div>
+              )}
+            </button>
+          ))}
+        </div>
 
-          {/* Status Filters */}
-          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-            <div className="flex items-center shrink-0 pr-2 border-r border-gray-200 dark:border-gray-700">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Trạng thái</span>
-            </div>
-            {statusChips.map(chip => (
-              <button 
-                key={chip}
-                onClick={() => setActiveStatusFilter(chip)}
-                className={`flex h-8 shrink-0 items-center justify-center rounded-full px-4 shadow-sm transition-all active:scale-95 ${
-                  activeStatusFilter === chip 
-                  ? 'bg-primary text-white font-bold' 
-                  : 'bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-text-main dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800'
-                }`}
-              >
-                <p className="text-xs">{chip}</p>
-              </button>
-            ))}
-          </div>
+        {/* Horizontal Role Scroller */}
+        <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+          {roleChips.map(chip => (
+            <button 
+              key={chip}
+              onClick={() => setActiveRoleFilter(chip)}
+              className={`flex h-9 shrink-0 items-center justify-center rounded-xl px-5 text-[11px] font-black uppercase tracking-widest transition-all border ${
+                activeRoleFilter === chip 
+                ? 'bg-primary text-white border-transparent shadow-glow scale-105' 
+                : 'bg-surface-dark text-slate-500 border-white/5 hover:border-white/10 hover:text-slate-300'
+              }`}
+            >
+              {chip}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* User List */}
-      <div className="flex flex-col gap-3 px-4 pt-2 pb-32">
+      {/* User Table (Rows) */}
+      <div className="flex flex-col flex-1 px-5 pt-6 pb-32 gap-4 relative z-10">
         {filteredUsers.length > 0 ? (
-          filteredUsers.map((user) => (
+          filteredUsers.map((user, index) => (
             <div 
               key={user.id} 
               onClick={() => navigate(`/edit-user/${user.id}`)}
-              className="flex items-center gap-4 rounded-[2rem] bg-white dark:bg-surface-dark p-4 shadow-soft dark:border dark:border-gray-800 transition-all hover:shadow-lg active:scale-[0.99] group border border-transparent cursor-pointer"
+              className="flex items-center gap-4 rounded-[28px] bg-gradient-to-br from-surface-dark to-slate-900/60 p-4 border border-white/5 transition-all hover:border-primary/30 hover:shadow-2xl hover:scale-[1.01] active:scale-[0.98] cursor-pointer group animate-in fade-in slide-in-from-bottom-4 duration-500"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
+              {/* Avatar Section */}
               <div className="relative shrink-0">
                 <div 
-                  className="bg-center bg-no-repeat bg-cover rounded-full h-14 w-14 ring-2 ring-gray-100 dark:ring-gray-700 shadow-sm" 
+                  className="bg-center bg-no-repeat bg-cover rounded-2xl h-16 w-16 shadow-2xl ring-2 ring-white/5 border border-white/10 transition-transform group-hover:scale-105" 
                   style={{ backgroundImage: `url("${user.img}")` }}
                 ></div>
-                <div className={`absolute bottom-0 right-0 h-4 w-4 rounded-full border-[3px] border-white dark:border-surface-dark shadow-sm ${user.isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                <div className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-full border-[3px] border-background-dark shadow-xl flex items-center justify-center ${user.isOnline ? 'bg-emerald-500' : 'bg-slate-700'}`}>
+                  {user.isOnline && <div className="size-1.5 bg-white rounded-full animate-ping opacity-75"></div>}
+                </div>
               </div>
-              <div className="flex flex-1 flex-col justify-center min-w-0">
-                <div className="flex items-center justify-between mb-0.5">
-                  <p className="text-text-main dark:text-white text-base font-extrabold truncate">{user.name}</p>
-                  {/* Status Badge */}
-                  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter shadow-sm border ${
+
+              {/* Info Section */}
+              <div className="flex flex-1 flex-col min-w-0">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2 truncate">
+                    <p className="text-white text-[17px] font-black truncate tracking-tight uppercase group-hover:text-primary transition-colors">{user.name}</p>
+                    {user.isVerified && <span className="material-symbols-outlined text-[18px] text-blue-400 filled shrink-0" title="Đã xác thực">verified</span>}
+                  </div>
+                  
+                  {/* Modern Status Badge */}
+                  <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0 border ${
                     user.status === 'active' 
-                    ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/50' 
-                    : 'bg-gray-50 text-gray-500 border-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                    : 'bg-slate-800 text-slate-500 border-white/10'
                   }`}>
-                    <span className={`size-1.5 rounded-full ${user.status === 'active' ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
-                    {user.status === 'active' ? 'Hoạt động' : 'Tạm dừng'}
+                     <span className={`size-1.5 rounded-full ${user.status === 'active' ? 'bg-emerald-500 shadow-glow' : 'bg-slate-600'}`}></span>
+                     <span className="text-[9px] font-black uppercase tracking-widest leading-none">
+                       {user.status === 'active' ? 'Hoạt động' : 'Tạm dừng'}
+                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                  <span className={`inline-flex items-center rounded-lg ${user.roleBg} px-2 py-0.5 text-[10px] font-black uppercase tracking-tight ${user.roleColor} ring-1 ring-inset ring-current/10`}>
-                    {user.isVerified && <span className="material-symbols-outlined mr-1 !text-[12px] filled">verified</span>}
+
+                <div className="flex items-center gap-3">
+                  <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-widest ${user.roleBg} ${user.roleColor} border border-white/5`}>
                     {user.role}
                   </span>
+                  <p className="text-slate-500 text-xs font-bold truncate tracking-tight">{user.email}</p>
                 </div>
-                <p className="text-text-sub dark:text-slate-400 text-sm truncate font-medium">{user.email}</p>
               </div>
-              <button className="shrink-0 h-10 w-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-text-sub dark:text-gray-400 transition-colors">
-                <span className="material-symbols-outlined">more_vert</span>
-              </button>
+
+              {/* Action Column */}
+              <div className="shrink-0 flex items-center justify-center h-12 w-12 rounded-2xl bg-white/5 group-hover:bg-primary/20 transition-all text-slate-700 group-hover:text-primary group-hover:rotate-6">
+                <span className="material-symbols-outlined font-black">chevron_right</span>
+              </div>
             </div>
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 px-10 text-center opacity-40">
-            <span className="material-symbols-outlined text-6xl mb-4">person_search</span>
-            <p className="text-sm font-bold uppercase tracking-widest">Không tìm thấy người dùng phù hợp</p>
+          <div className="flex flex-col items-center justify-center py-24 px-10 text-center animate-in fade-in zoom-in duration-700">
+            <div className="size-28 rounded-[32px] bg-surface-dark flex items-center justify-center mb-8 shadow-2xl border border-white/5 transform -rotate-6">
+              <span className="material-symbols-outlined text-5xl text-slate-700">group_off</span>
+            </div>
+            <h3 className="text-white font-black uppercase tracking-[0.2em] text-xl mb-3">Dữ liệu trống</h3>
+            <p className="text-sm font-medium text-slate-500 px-4 leading-relaxed">Không có nhân sự nào phù hợp với các tiêu chí bộ lọc hiện tại.</p>
+            <button 
+              onClick={() => { setActiveRoleFilter('Tất cả'); setActiveStatusFilter('Tất cả'); setSearchQuery(''); setSortByStatus(false); }}
+              className="mt-10 px-10 py-4 rounded-[22px] bg-primary text-white font-black uppercase tracking-widest text-xs shadow-glow hover:brightness-110 active:scale-95 transition-all border border-white/10"
+            >
+              Thiết lập lại
+            </button>
           </div>
         )}
       </div>
 
-      {/* FAB */}
-      <button 
-        onClick={() => navigate('/add-user')}
-        className="fixed bottom-28 right-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-glow hover:bg-primary-dark transition-all active:scale-90 group"
-      >
-        <span className="material-symbols-outlined text-[28px] group-hover:rotate-90 transition-transform duration-300">add</span>
-      </button>
-
-      {/* Bottom Navigation for Admin/Management context */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-[84px] w-full items-start justify-around bg-white dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 pt-3 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)] backdrop-blur-lg">
+      {/* Custom Dark Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-[90px] w-full items-start justify-around bg-background-dark/95 backdrop-blur-2xl border-t border-white/5 pt-4 pb-safe shadow-2xl">
         <button 
           onClick={() => navigate('/home')}
-          className="flex flex-col items-center gap-1 opacity-60 hover:opacity-100 transition-opacity w-16"
+          className="flex flex-col items-center gap-1.5 opacity-40 hover:opacity-100 transition-all group w-16"
         >
-          <span className="material-symbols-outlined">grid_view</span>
-          <span className="text-[10px] font-bold">Tổng quan</span>
+          <span className="material-symbols-outlined group-hover:scale-110 transition-transform">grid_view</span>
+          <span className="text-[9px] font-black uppercase tracking-widest">Bảng tin</span>
         </button>
-        <button className="flex flex-col items-center gap-1 w-16 text-primary">
-          <div className="rounded-full bg-primary/10 px-4 py-1 flex items-center justify-center">
+        <button className="flex flex-col items-center gap-1.5 w-16 text-primary scale-110">
+          <div className="relative">
             <span className="material-symbols-outlined filled">group</span>
+            <div className="absolute -top-1 -right-1 size-2 bg-primary rounded-full shadow-glow animate-pulse"></div>
           </div>
-          <span className="text-[10px] font-black uppercase tracking-tighter">Người dùng</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.15em]">Nhân sự</span>
         </button>
         <button 
           onClick={() => navigate('/saved')}
-          className="flex flex-col items-center gap-1 opacity-60 hover:opacity-100 transition-opacity w-16"
+          className="flex flex-col items-center gap-1.5 opacity-40 hover:opacity-100 transition-all group w-16"
         >
-          <span className="material-symbols-outlined">apartment</span>
-          <span className="text-[10px] font-bold">Dự án</span>
+          <span className="material-symbols-outlined group-hover:scale-110 transition-transform">bookmark_manager</span>
+          <span className="text-[9px] font-black uppercase tracking-widest">Dự án</span>
         </button>
         <button 
-          onClick={() => navigate('/advanced-settings')}
-          className="flex flex-col items-center gap-1 opacity-60 hover:opacity-100 transition-opacity w-16"
+          onClick={() => navigate('/profile')}
+          className="flex flex-col items-center gap-1.5 opacity-40 hover:opacity-100 transition-all group w-16"
         >
-          <span className="material-symbols-outlined">settings</span>
-          <span className="text-[10px] font-bold">Cài đặt</span>
+          <span className="material-symbols-outlined group-hover:scale-110 transition-transform">account_circle</span>
+          <span className="text-[9px] font-black uppercase tracking-widest">Tôi</span>
         </button>
       </nav>
     </div>

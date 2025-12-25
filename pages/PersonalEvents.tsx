@@ -1,81 +1,66 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-interface PersonalEvent {
-  id: string;
-  title: string;
-  time: string;
-  location: string;
-  icon: string;
-  colorClass: string;
-  bgClass: string;
-  aiSuggestion?: string;
-  date: string;
-  status: 'upcoming' | 'past';
-}
+import { CalendarEvent } from '../types';
 
 const PersonalEvents: React.FC = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<'upcoming' | 'past'>('upcoming');
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
 
-  const events: PersonalEvent[] = [
-    {
-      id: '1',
-      title: 'Xem căn hộ Vinhomes Smart City',
-      time: '09:00 - 10:30',
-      location: 'Tây Mỗ, Nam Từ Liêm, Hà Nội',
-      icon: 'calendar_month',
-      colorClass: 'text-primary',
-      bgClass: 'bg-blue-50 dark:bg-primary/20',
-      aiSuggestion: 'Goland AI gợi ý đi sớm 15p để tránh tắc đường.',
-      date: 'Hôm nay, 24 Tháng 10',
-      status: 'upcoming'
-    },
-    {
-      id: '2',
-      title: 'Ký hợp đồng thuê nhà',
-      time: '14:00 - 15:00',
-      location: 'Văn phòng công chứng số 1',
-      icon: 'description',
-      colorClass: 'text-green-600',
-      bgClass: 'bg-green-50 dark:bg-green-900/20',
-      date: 'Hôm nay, 24 Tháng 10',
-      status: 'upcoming'
-    },
-    {
-      id: '3',
-      title: 'Gặp khách hàng Nguyễn Văn A',
-      time: '10:00 - 11:30',
-      location: 'Highlands Coffee, Quận 1',
-      icon: 'person',
-      colorClass: 'text-orange-600',
-      bgClass: 'bg-orange-50 dark:bg-orange-900/20',
-      date: 'Ngày mai, 25 Tháng 10',
-      status: 'upcoming'
-    },
-    {
-      id: '4',
-      title: 'Đóng tiền cọc đợt 2',
-      time: '15:30 - 16:00',
-      location: 'Ngân hàng Techcombank',
-      icon: 'payments',
-      colorClass: 'text-purple-600',
-      bgClass: 'bg-purple-50 dark:bg-purple-900/20',
-      date: 'Ngày mai, 25 Tháng 10',
-      status: 'upcoming'
+  useEffect(() => {
+    const saved = localStorage.getItem('goland_events');
+    if (saved) {
+      setEvents(JSON.parse(saved));
     }
-  ];
+  }, []);
 
-  const filteredEvents = events.filter(e => e.status === filter);
+  const getTypeStyles = (type: string) => {
+    switch (type) {
+      case 'visit': return { icon: 'calendar_month', color: 'text-primary', bg: 'bg-blue-50 dark:bg-primary/20' };
+      case 'contract': return { icon: 'description', color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' };
+      case 'meeting': return { icon: 'person', color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' };
+      case 'payment': return { icon: 'payments', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' };
+      default: return { icon: 'event', color: 'text-gray-500', bg: 'bg-gray-100 dark:bg-gray-800' };
+    }
+  };
+
+  const filteredEvents = events.filter(e => {
+    const eventDate = new Date(e.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (filter === 'upcoming') {
+      return eventDate >= today;
+    } else {
+      return eventDate < today;
+    }
+  }).sort((a, b) => {
+    return filter === 'upcoming' 
+      ? a.date.localeCompare(b.date) || a.time.localeCompare(b.time)
+      : b.date.localeCompare(a.date) || b.time.localeCompare(a.time);
+  });
   
-  // Group events by date
+  // Group events by date string for display
   const groupedEvents = filteredEvents.reduce((groups, event) => {
     const date = event.date;
     if (!groups[date]) groups[date] = [];
     groups[date].push(event);
     return groups;
-  }, {} as Record<string, PersonalEvent[]>);
+  }, {} as Record<string, CalendarEvent[]>);
+
+  const formatDateLabel = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (date.getTime() === today.getTime()) return 'Hôm nay, ' + date.toLocaleDateString('vi-VN', { day: 'numeric', month: 'long' });
+    if (date.getTime() === tomorrow.getTime()) return 'Ngày mai, ' + date.toLocaleDateString('vi-VN', { day: 'numeric', month: 'long' });
+    
+    return date.toLocaleDateString('vi-VN', { weekday: 'long', day: 'numeric', month: 'long' });
+  };
 
   return (
     <div className="relative flex h-full min-h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white pb-24">
@@ -114,53 +99,67 @@ const PersonalEvents: React.FC = () => {
       {/* Event List Content */}
       <div className="flex-1 overflow-y-auto no-scrollbar">
         {Object.entries(groupedEvents).length > 0 ? (
-          Object.entries(groupedEvents).map(([date, dateEvents]) => (
-            <div key={date} className="mb-6">
+          (Object.entries(groupedEvents) as [string, CalendarEvent[]][]).map(([dateStr, dateEvents]) => (
+            <div key={dateStr} className="mb-6">
               <div className="px-5 pb-3 pt-2">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">{date}</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">{formatDateLabel(dateStr)}</h3>
               </div>
               
               <div className="space-y-3 px-4">
-                {dateEvents.map((event) => (
-                  <div 
-                    key={event.id}
-                    className="group relative overflow-hidden rounded-[20px] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:bg-[#1A2633] dark:shadow-none border border-black/5 dark:border-white/5 transition-all active:scale-[0.98] hover:shadow-md"
-                  >
-                    <div className="flex flex-col p-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-4">
-                          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${event.bgClass} ${event.colorClass} shadow-sm ring-1 ring-inset ring-black/5`}>
-                            <span className="material-symbols-outlined filled" style={{ fontSize: '24px' }}>{event.icon}</span>
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                            <p className="text-base font-extrabold text-slate-900 dark:text-white line-clamp-1 leading-tight">{event.title}</p>
-                            <div className="mt-2 flex items-center gap-1.5 text-xs font-bold text-slate-400 dark:text-slate-500">
-                              <span className="material-symbols-outlined text-[14px]">schedule</span>
-                              <span>{event.time}</span>
+                {dateEvents.map((event) => {
+                  const styles = getTypeStyles(event.type);
+                  return (
+                    <div 
+                      key={event.id}
+                      onClick={() => navigate(`/event/${event.id}`)}
+                      className="group relative overflow-hidden rounded-[20px] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.03)] dark:bg-[#1A2633] dark:shadow-none border border-black/5 dark:border-white/5 transition-all active:scale-[0.98] hover:shadow-md cursor-pointer"
+                    >
+                      <div className="flex flex-col p-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-4">
+                            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${styles.bg} ${styles.color} shadow-sm ring-1 ring-inset ring-black/5`}>
+                              <span className="material-symbols-outlined filled" style={{ fontSize: '24px' }}>{styles.icon}</span>
                             </div>
-                            <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-400 dark:text-slate-500">
-                              <span className="material-symbols-outlined text-[14px]">location_on</span>
-                              <span className="line-clamp-1">{event.location}</span>
+                            <div className="flex flex-col min-w-0">
+                              <p className={`text-base font-extrabold text-slate-900 dark:text-white line-clamp-1 leading-tight uppercase tracking-tight ${event.completed ? 'line-through opacity-50' : ''}`}>{event.title}</p>
+                              <div className="mt-2 flex items-center gap-3 text-xs font-bold text-slate-400 dark:text-slate-500">
+                                <div className="flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-[14px]">schedule</span>
+                                  <span>{event.time}</span>
+                                </div>
+                                {event.reminder !== 'Không' && !event.completed && (
+                                  <div className="flex items-center gap-1 text-primary">
+                                    <span className="material-symbols-outlined text-[14px] filled">notifications</span>
+                                    <span>{event.reminder}</span>
+                                  </div>
+                                )}
+                              </div>
+                              {event.location && (
+                                <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-400 dark:text-slate-500">
+                                  <span className="material-symbols-outlined text-[14px]">location_on</span>
+                                  <span className="line-clamp-1">{event.location}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
+                          <button className="shrink-0 rounded-full p-1 text-slate-300 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 transition-colors">
+                            <span className="material-symbols-outlined">chevron_right</span>
+                          </button>
                         </div>
-                        <button className="shrink-0 rounded-full p-1 text-slate-300 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 transition-colors">
-                          <span className="material-symbols-outlined">more_vert</span>
-                        </button>
-                      </div>
 
-                      {/* AI Suggestion Chip */}
-                      {event.aiSuggestion && (
-                        <div className="mt-4 flex items-center gap-2.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-900/20 px-4 py-2 border border-indigo-100/50 dark:border-indigo-800/30">
-                          <span className="material-symbols-outlined text-[18px] text-indigo-600 dark:text-indigo-400 filled">auto_awesome</span>
-                          <p className="text-[11px] font-bold text-indigo-700/80 dark:text-indigo-300/80 italic leading-snug">
-                            {event.aiSuggestion}
-                          </p>
-                        </div>
-                      )}
+                        {/* AI Suggestion Simulated Placeholder */}
+                        {!event.completed && (
+                          <div className="mt-4 flex items-center gap-2.5 rounded-xl bg-indigo-50/80 dark:bg-indigo-900/20 px-4 py-2 border border-indigo-100/50 dark:border-indigo-800/30">
+                            <span className="material-symbols-outlined text-[18px] text-indigo-600 dark:text-indigo-400 filled">auto_awesome</span>
+                            <p className="text-[11px] font-bold text-indigo-700/80 dark:text-indigo-300/80 italic leading-snug">
+                              AI: Đã tối ưu hóa lịch trình cho bạn.
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))
@@ -168,6 +167,12 @@ const PersonalEvents: React.FC = () => {
           <div className="flex flex-col items-center justify-center py-20 px-10 text-center opacity-40">
             <span className="material-symbols-outlined text-6xl mb-4">event_busy</span>
             <p className="text-sm font-bold uppercase tracking-widest">Chưa có sự kiện nào</p>
+            <button 
+              onClick={() => navigate('/create-event')}
+              className="mt-6 bg-primary text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20"
+            >
+              Lên lịch ngay
+            </button>
           </div>
         )}
       </div>

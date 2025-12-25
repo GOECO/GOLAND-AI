@@ -10,8 +10,32 @@ const ChatScreen: React.FC = () => {
     {
       id: '1',
       role: 'assistant',
-      content: "Hello! I am Goland AI. I can assist with market prices, zoning laws, and project comparisons. How can I help you navigate the real estate market today?",
+      content: "Xin chào! Tôi là Goland AI. Tôi có thể hỗ trợ bạn về giá thị trường, quy hoạch pháp lý và so sánh các dự án. Hôm nay tôi có thể giúp gì cho bạn?",
       timestamp: '10:23 AM'
+    },
+    {
+      id: '2',
+      role: 'user',
+      content: "Cho tôi biết tiềm năng tăng giá của khu vực Thủ Đức.",
+      timestamp: '10:24 AM'
+    },
+    {
+      id: '3',
+      role: 'assistant',
+      content: "Khu vực Thủ Đức đang có tiềm năng rất lớn nhờ hạ tầng Metro số 1 và đường Vành Đai 3. Tôi cũng nhận thấy bạn có 2 lịch hẹn xem nhà tại đây vào ngày mai. Bạn có muốn tôi chuẩn bị bộ tài liệu so sánh giá cho các dự án đó không?",
+      timestamp: '10:25 AM'
+    },
+    {
+      id: '4',
+      role: 'user',
+      content: "Vâng, hãy chuẩn bị cho tôi. Đặc biệt là so sánh giữa Vinhomes và Masteri.",
+      timestamp: '10:26 AM'
+    },
+    {
+      id: '5',
+      role: 'assistant',
+      content: "Đã rõ. Tôi đang trích xuất dữ liệu so sánh cho Vinhomes Central Park và Masteri Thảo Điền. Bạn có muốn xem biểu đồ tăng trưởng giá của 2 dự án này ngay không?",
+      timestamp: '10:26 AM'
     }
   ]);
   const [input, setInput] = useState('');

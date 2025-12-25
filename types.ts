@@ -14,6 +14,9 @@ export interface Property {
   isVerified?: boolean;
   potential?: number;
   description?: string;
+  type: 'apartment' | 'house' | 'land' | 'villa';
+  transaction: 'buy' | 'rent';
+  coords: { x: number; y: number }; // x, y percentages for map simulation
 }
 
 export interface Message {
@@ -22,4 +25,18 @@ export interface Message {
   content: string;
   timestamp: string;
   media?: any;
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  time: string;
+  type: 'visit' | 'contract' | 'meeting' | 'payment';
+  date: string; // ISO format YYYY-MM-DD
+  location?: string;
+  completed?: boolean;
+  reminder?: string;
+  notes?: string;
+  propertyId?: string;
+  isConflict?: boolean;
 }

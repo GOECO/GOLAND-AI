@@ -28,6 +28,7 @@ import MapSelection from './pages/MapSelection';
 import EventDetail from './pages/EventDetail';
 import PersonalEvents from './pages/PersonalEvents';
 import CreateEvent from './pages/CreateEvent';
+import CalendarView from './pages/CalendarView';
 import FeedbackScreen from './pages/FeedbackScreen';
 import FeedbackSuccessScreen from './pages/FeedbackSuccessScreen';
 import SavedProjects from './pages/SavedProjects';
@@ -73,6 +74,8 @@ const AppContent: React.FC = () => {
         <Route path="/map-selection" element={<MapSelection />} />
         <Route path="/personal-events" element={<PersonalEvents />} />
         <Route path="/create-event" element={<CreateEvent />} />
+        <Route path="/edit-event/:id" element={<CreateEvent />} />
+        <Route path="/calendar" element={<CalendarView />} />
         <Route path="/feedback" element={<FeedbackScreen />} />
         <Route path="/feedback-success" element={<FeedbackSuccessScreen />} />
         <Route path="/saved" element={<SavedProjects />} />
