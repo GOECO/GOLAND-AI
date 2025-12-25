@@ -1,0 +1,9 @@
+{
+  "name": "Goland AI - Smart Real Estate Map",
+  "description": "An AI-powered real estate platform for property search, valuation, and market analysis using the Gemini API for smart insights.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
